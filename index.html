@@ -135,6 +135,11 @@ textarea{min-height:130px;resize:vertical}
 button.btn{cursor:pointer;justify-content:center}
 @media (max-width:820px){.contact{grid-template-columns:1fr}}
 
+dialog{margin:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--text);padding:32px;max-width:min(380px,calc(100vw - 32px));text-align:center;box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(3px)}
+dialog .tick{width:52px;height:52px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:#22c55e;color:#fff;font-size:1.6rem;font-weight:700}
+dialog p{color:var(--muted);margin:8px 0 20px}
+
 footer{padding:36px 0 48px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:24px}
 
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}
@@ -273,7 +278,6 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:.85rem;border-top:1px so
         <p>Hiring, collaborating, or just want to say hi? My inbox is open.</p>
         <div class="socials">
           <a href="mailto:nikakotrikadze12@gmail.com">nikakotrikadze12@gmail.com <span>↗</span></a>
-          <a href="tel:+14753464624">+1 (475) 346-4624 <span>↗</span></a>
           <a href="https://www.linkedin.com/in/nikoloz-k-515a921aa/" target="_blank" rel="noopener">LinkedIn <span>↗</span></a>
           <a href="https://github.com/nikaKotrikadze" target="_blank" rel="noopener">GitHub <span>↗</span></a>
           <a href="https://www.instagram.com/thetechniko/" target="_blank" rel="noopener">Instagram @thetechniko <span>↗</span></a>
@@ -290,9 +294,16 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:.85rem;border-top:1px so
     </div>
   </section>
 
+  <dialog id="sent">
+    <div class="tick">✓</div>
+    <h3 id="sent-title">Message sent successfully!</h3>
+    <p id="sent-msg">Thanks for reaching out — I'll get back to you soon.</p>
+    <form method="dialog"><button class="btn primary">Close</button></form>
+  </dialog>
+
 </main>
 
-<footer><div class="wrap">© <span id="yr"></span> Nikoloz Kotrikadze · Montgomery, AL</div></footer>
+<footer><div class="wrap">© <span id="yr"></span> Nikoloz Kotrikadze</div></footer>
 
 <script>
 const projects = [
@@ -323,6 +334,25 @@ document.getElementById("theme").onclick = () => {
   root.dataset.theme = dark ? "light" : "dark";
   try { localStorage.setItem("theme", root.dataset.theme); } catch {}
 };
+
+const contactForm = document.querySelector('form[name="contact"]');
+const sent = document.getElementById("sent");
+contactForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = contactForm.querySelector("button");
+  btn.disabled = true;
+  let ok = false;
+  try {
+    const r = await fetch("/", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:new URLSearchParams(new FormData(contactForm)).toString()});
+    ok = r.ok;
+  } catch {}
+  document.getElementById("sent-title").textContent = ok ? "Message sent successfully!" : "Something went wrong";
+  document.getElementById("sent-msg").textContent = ok ? "Thanks for reaching out — I'll get back to you soon." : "Please try again or email me at nikakotrikadze12@gmail.com.";
+  sent.querySelector(".tick").hidden = !ok;
+  if (ok) contactForm.reset();
+  btn.disabled = false;
+  sent.showModal();
+});
 
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold:.1});
 document.querySelectorAll(".reveal").forEach(el => io.observe(el));
