@@ -1,0 +1,5 @@
+# Static site: no build step required. These settings override the
+# Next.js-style build command and publish directory configured in the UI.
+[build]
+  command = "echo 'Static site, no build step'"
+  publish = "."
